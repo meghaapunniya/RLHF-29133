@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f4f4f4;
+    }
+
+    #color-wheel-container,
+    #outfit-display {
+      margin: 20px;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #outfit-display {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+
+    .suggestion-box {
+      border: 1px solid #ddd;
+      margin: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    a {
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <body></body>
+  <script>
+    const colorPalette = [
+      {
+        colorName: 'Navy Blue',
+        RGB: '0,0,128',
+        HEX: '#000080',
+        outfitSuggestions: [
+          {
+            type: 'top',
+            item: 'White Shirt',
+            link: 'https://example.com/white-shirt',
+          },
+          {
+            type: 'bottom',
+            item: 'Khaki Pants',
+            link: 'https://example.com/khaki-pants',
+          },
+          {
+            type: 'shoes',
+            item: 'Brown Loafers',
+            link: 'https://example.com/brown-loafers',
+          },
+        ],
+        accessoriesToTry: [
+          { item: 'Silver Watch', link: 'https://example.com/silver-watch' },
+        ],
+        combinationColorToTryWith: 'Silver or Gold',
+        shoppingLink: 'https://example.com/navy-blue-items',
+      },
+      // Add more colors similarly
+    ];
+    document
+      .getElementById('colorWheel')
+      .addEventListener('change', function (e) {
+        let selectedColor = e.target.value; // Assuming this is how the color wheel library returns color
+        updateOutfitSuggestions(selectedColor);
+      });
+
+    function updateOutfitSuggestions(color) {
+      let colorObj = colorPalette.find((c) => c.HEX === color);
+      if (colorObj) {
+        // Display outfit suggestions
+        document.getElementById('outfit-display').innerHTML =
+          generateSuggestionHTML(colorObj);
+      }
+    }
+
+    function generateSuggestionHTML(colorObj) {
+      let html = '';
+      colorObj.outfitSuggestions.forEach((suggestion) => {
+        html += `<div class="suggestion-box">
+                    <h4>${suggestion.type}</h4>
+                    <p>${suggestion.item}</p>
+                    <a href="${suggestion.link}" target="_blank">Buy Now</a>
+                </div>`;
+      });
+      return html;
+    }
+
+    function getComplementaryColor(hex) {
+      // Logic to find complementary color
+    }
+
+    function getAnalogousColors(hex) {
+      // Logic to find analogous colors
+    }
+
+    // Similar functions for triadic, monochromatic etc.
+
+    let userPreferences = {
+      intensity: 'medium',
+      occasion: 'casual',
+    };
+
+    function setPreferences(intensity, occasion) {
+      userPreferences.intensity = intensity;
+      userPreferences.occasion = occasion;
+      // Update outfit suggestions based on these preferences
+    }
+  </script>
+</html>

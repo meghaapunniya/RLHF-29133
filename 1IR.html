@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Outfit Recommendation Widget</title>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+      .widget-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 50px;
+        width: 90%;
+        max-width: 600px;
+        position: relative;
+      }
+      h1,
+      h2,
+      h3 {
+        text-align: center;
+        color: #333;
+      }
+      #colorPicker {
+        margin: 20px auto;
+        display: flex;
+        justify-content: center;
+      }
+      #outfitSuggestions {
+        margin-top: 20px;
+      }
+      #preferences {
+        margin-top: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      select {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 10px;
+      }
+      .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        gap: 20px;
+      }
+      .card {
+        width: 150px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+      }
+      .card-image {
+        width: 100%;
+        height: 150px; /* Set a fixed height */
+        background-size: cover; /* Ensure the image covers the area */
+        background-position: center; /* Center the image */
+        background-repeat: no-repeat;
+        margin-bottom: 10px;
+      }
+      .card-content {
+        padding: 10px;
+        text-align: center;
+      }
+      .card-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .card-link {
+        color: #0066cc;
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .card-link:hover {
+        text-decoration: underline;
+      }
+      .switch-container {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #2196f3;
+      }
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+      .switch-label {
+        margin-right: 10px;
+        font-size: 14px;
+      }
+      #seasonSelect {
+        display: none;
+        margin-top: 10px;
+      }
+      h2 {
+        margin-top: 0;
+        color: #444;
+      }
+      h3 {
+        color: #666;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+      }
+      ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        margin: 0;
+      }
+      li {
+        margin-bottom: 5px;
+      }
+      p {
+        color: #555;
+        font-size: 16px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="widget-container">
+      <h1>Outfit Recommendation Widget</h1>
+      <div class="switch-container">
+        <span class="switch-label">Seasonal Palettes</span>
+        <label class="switch">
+          <input type="checkbox" id="seasonalSwitch" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <select id="seasonSelect">
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="autumn">Autumn</option>
+        <option value="winter">Winter</option>
+      </select>
+      <div id="colorPicker"></div>
+      <div id="preferences">
+        <label for="intensity">Color Intensity:</label>
+        <select id="intensity">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+        <label for="occasion">Occasion:</label>
+        <select id="occasion">
+          <option value="casual" selected>Casual</option>
+          <option value="formal">Formal</option>
+          <option value="sporty">Sporty</option>
+          <option value="party">Party</option>
+        </select>
+      </div>
+      <div id="outfitSuggestions"></div>
+    </div>
+
+    <script>
+      const colorRecommendations = [
+        {
+          rgb: 'rgb(255, 0, 0)',
+          hex: '#FF0000',
+          colorName: 'Red',
+          intensity: ['medium', 'high'],
+          occasion: ['casual', 'party'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Red blouse',
+              link: 'https://a.co/d/fAmc7YH',
+              image:
+                'https://m.media-amazon.com/images/I/715q51HtCYL._AC_SY550_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'Black jeans',
+              link: 'https://a.co/d/emgv5zD',
+              image:
+                'https://m.media-amazon.com/images/I/61O+xxcPfAL._AC_SX569_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'Black ankle boots',
+              link: 'https://a.co/d/aaFLcge',
+              image:
+                'https://m.media-amazon.com/images/I/81YFLMsEMXL._AC_SX575_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Gold necklace',
+              link: 'https://a.co/d/a0Tghb6',
+              image:
+                'https://m.media-amazon.com/images/I/81knPw60a+L._AC_SY675_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Silver earrings', 'Black belt'],
+          combinationColorToTryWith: 'Navy blue',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/915NsqcCCeL._AC_SX569_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/71j96iFzn6L._AC_SX466_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=red+outfits+for+women&crid=1QCQQ4BGRJKQO&sprefix=red+outfits+for+%2Caps%2C411&ref=nb_sb_ss_ts-doa-p_1_16',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+red+outfits+for+women&page=2&crid=7D0JUYZI2PTQ&qid=1725479050&sprefix=accessories+for+red+outfi+for+women%2Caps%2C544&ref=sr_pg_0',
+          },
+        },
+        {
+          rgb: 'rgb(0, 0, 255)',
+          hex: '#0000FF',
+          colorName: 'Blue',
+          intensity: ['low', 'medium'],
+          occasion: ['formal', 'casual'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Blue dress shirt',
+              link: 'https://a.co/d/dFicYUF',
+              image:
+                'https://m.media-amazon.com/images/I/61oQSmrenEL._AC_SY550_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'Khaki pants',
+              link: 'https://a.co/d/1KqkDHH',
+              image:
+                'https://m.media-amazon.com/images/I/61CownRfC9L._AC_SX569_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'Brown loafers',
+              link: 'https://a.co/d/gPYphcv',
+              image:
+                'https://m.media-amazon.com/images/I/61Ugoa2EKnL._AC_SY575_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Silver watch',
+              link: 'https://a.co/d/a3zGss1',
+              image:
+                'https://m.media-amazon.com/images/I/91H3ETNzJ3L._AC_SY741_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Leather belt', 'Tie'],
+          combinationColorToTryWith: 'Light gray',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/71J3gd1et1L._AC_SY535_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/81M6AIFnEZL._AC_SY550_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=blue+outfits+for+women&crid=1JHD2JDY0R062&sprefix=blue+outfits%2Caps%2C391&ref=nb_sb_ss_ts-doa-p_1_12',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+blue+dress+women&crid=3NFWEEI7R9L6Q&sprefix=accessories+for+blue+dress+women%2Caps%2C364&ref=nb_sb_noss_2',
+          },
+        },
+        {
+          rgb: 'rgb(0, 255, 0)',
+          hex: '#00FF00',
+          colorName: 'Green',
+          intensity: ['medium', 'high'],
+          occasion: ['casual', 'outdoor'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Green t-shirt',
+              link: 'https://a.co/d/6kM3R2e',
+              image:
+                'https://m.media-amazon.com/images/I/71jhOnF8xHL._AC_SY550_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'Khaki shorts',
+              link: 'https://a.co/d/eodu3Xt',
+              image:
+                'https://m.media-amazon.com/images/I/71IEDAVZtDS._AC_SY550_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'White sneakers',
+              link: 'https://a.co/d/92co8Ex',
+              image:
+                'https://m.media-amazon.com/images/I/61oa+rlwTiL._AC_SY575_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Straw hat',
+              link: 'https://a.co/d/j614usJ',
+              image:
+                'https://m.media-amazon.com/images/I/7185BtmlTRL._AC_SX569_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Wooden bracelet', 'Canvas tote bag'],
+          combinationColorToTryWith: 'Beige',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/71eI470vPXL._AC_SY535_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/81KRWstHgLL._AC_SY550_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=green+outfits+for+women&crid=GRD4V6TRM0M5&sprefix=green+outfits%2Caps%2C414&ref=nb_sb_ss_ts-doa-p_1_13',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+green+outfits+for+women&crid=1K4G0DMB6ZYN6&sprefix=accessories+fogreen+outfits+for+women%2Caps%2C395&ref=nb_sb_noss',
+          },
+        },
+        {
+          rgb: 'rgb(255, 255, 0)',
+          hex: '#FFFF00',
+          colorName: 'Yellow',
+          intensity: ['low', 'medium'],
+          occasion: ['spring', 'summer'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Yellow sundress',
+              link: 'https://a.co/d/5JKALeL',
+              image:
+                'https://m.media-amazon.com/images/I/61nlyHxmfrL._AC_SY550_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'White shorts',
+              link: 'https://a.co/d/hE2QC9g',
+              image:
+                'https://m.media-amazon.com/images/I/615WyzGJO-S._AC_SY550_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'Sandals',
+              link: 'https://a.co/d/aqwNH9E',
+              image:
+                'https://m.media-amazon.com/images/I/61cA2WpKDqL._AC_SY575_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Straw hat',
+              link: 'https://a.co/d/9Vp3N2g',
+              image:
+                'https://m.media-amazon.com/images/I/71QVVhfp+nL._AC_SX466_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Woven tote bag', 'Sunglasses'],
+          combinationColorToTryWith: 'White',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/711LFpjaUPS._AC_SX569_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/81PMoI7RAbL._AC_UL320_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=yellow+outfits+for+women&crid=114PO4L2JATFX&sprefix=yellow+outfits%2Caps%2C353&ref=nb_sb_ss_ts-doa-p_2_14',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+yellow+outfits+for+women&crid=3B0PZVJHTU10&sprefix=accessories+foryellow+outfits+for+women%2Caps%2C357&ref=nb_sb_noss',
+          },
+        },
+        {
+          rgb: 'rgb(128, 0, 128)',
+          hex: '#800080',
+          colorName: 'Purple',
+          intensity: ['medium', 'high'],
+          occasion: ['formal', 'special event'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Purple blouse',
+              link: 'https://a.co/d/4zI1LKH',
+              image:
+                'https://m.media-amazon.com/images/I/81PGUmH4nlL._AC_SX466_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'Black skirt',
+              link: 'https://m.media-amazon.com/images/I/61fIzCQod0L._AC_SX569_.jpg',
+              image:
+                'https://m.media-amazon.com/images/I/61fIzCQod0L._AC_SX569_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'Nude heels',
+              link: 'https://a.co/d/eSmd1YG',
+              image:
+                'https://m.media-amazon.com/images/I/61UCnpSHxPL._AC_SY575_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Pearl necklace',
+              link: 'https://a.co/d/g1ARWER',
+              image:
+                'https://m.media-amazon.com/images/I/51IYNxoBiEL._AC_SY675_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Amethyst earrings', 'Velvet clutch'],
+          combinationColorToTryWith: 'Ivory',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/71An6Ae2vlL._AC_SY535_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/71cKugqR2HL._AC_SY550_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=purple+outfits+for+women&crid=HDK9LQKYJJEB&sprefix=purple+outfit%2Caps%2C353&ref=nb_sb_ss_ts-doa-p_1_13',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+purple+outfits+for+women&crid=Y474PE8W1I89&sprefix=accessories+for+purple+outfits+for+women%2Caps%2C371&ref=nb_sb_noss_2',
+          },
+        },
+        {
+          rgb: 'rgb(255, 165, 0)',
+          hex: '#FFA500',
+          colorName: 'Orange',
+          intensity: ['medium', 'high'],
+          occasion: ['casual', 'fall'],
+          outfitSuggestions: [
+            {
+              type: 'top',
+              item: 'Orange sweater',
+              link: 'https://a.co/d/hUWcivV',
+              image:
+                'https://m.media-amazon.com/images/I/71aAjE+j-AL._AC_SY550_.jpg',
+            },
+            {
+              type: 'bottom',
+              item: 'Blue jeans',
+              link: 'https://a.co/d/fxEbmgW',
+              image:
+                'https://m.media-amazon.com/images/I/71XsNC0QW+L._AC_SY550_.jpg',
+            },
+            {
+              type: 'shoes',
+              item: 'Brown boots',
+              link: 'https://a.co/d/iHum2tE',
+              image:
+                'https://m.media-amazon.com/images/I/61bC-OrzAlL._AC_SY550_.jpg',
+            },
+            {
+              type: 'accessory',
+              item: 'Scarf',
+              link: 'https://a.co/d/7OYNrUz',
+              image:
+                'https://m.media-amazon.com/images/I/71mR8xGyd2L._AC_SX569_.jpg',
+            },
+          ],
+          accessoriesToTry: ['Leather belt', 'Beanie'],
+          combinationColorToTryWith: 'Olive green',
+          shoppingLinks: {
+            accessoryImage:
+              'https://m.media-amazon.com/images/I/51atoax6-ZL._AC_SX569_.jpg',
+            clothingImage:
+              'https://m.media-amazon.com/images/I/71uVpgT48HL._AC_SY550_.jpg',
+            clothingItems:
+              'https://www.amazon.com/s?k=orange+outfits+for+women&crid=3NEMQ2LPL4O2G&sprefix=orange+outfits%2Caps%2C352&ref=nb_sb_ss_ts-doa-p_1_14',
+            accessories:
+              'https://www.amazon.com/s?k=accessories+for+orange+outfits+for+women&crid=2LEBGZRW2I6B6&sprefix=accessories+for+orange+outfits+for+women%2Caps%2C336&ref=nb_sb_noss',
+          },
+        },
+        // Add more color objects here
+      ];
+
+      const seasonalPalettes = {
+        spring: ['#FF69B4', '#98FB98', '#87CEFA', '#FFB6C1', '#E6E6FA'],
+        summer: ['#FF6347', '#20B2AA', '#FFD700', '#87CEEB', '#F0E68C'],
+        autumn: ['#8B4513', '#DAA520', '#CD853F', '#D2691E', '#B8860B'],
+        winter: ['#4169E1', '#800080', '#2F4F4F', '#8B0000', '#191970'],
+      };
+
+      const colorPicker = new iro.ColorPicker('#colorPicker', {
+        width: 200,
+        color: '#f00',
+      });
+
+      const seasonalSwitch = document.getElementById('seasonalSwitch');
+      const seasonSelect = document.getElementById('seasonSelect');
+
+      seasonalSwitch.addEventListener('change', function () {
+        if (this.checked) {
+          seasonSelect.style.display = 'block';
+          updateSeasonalPalette();
+        } else {
+          seasonSelect.style.display = 'none';
+          colorPicker.setColors(colorRecommendations.map((color) => color.hex));
+        }
+      });
+
+      seasonSelect.addEventListener('change', updateSeasonalPalette);
+
+      function updateSeasonalPalette() {
+        const season = seasonSelect.value;
+        colorPicker.setColors(seasonalPalettes[season]);
+      }
+
+      function getClosestColor(hex) {
+        let closestColor = null;
+        let minDistance = Infinity;
+
+        const intensity = document.getElementById('intensity').value;
+        const occasion = document.getElementById('occasion').value;
+
+        for (const color of colorRecommendations) {
+          if (
+            color.intensity.includes(intensity) &&
+            color.occasion.includes(occasion)
+          ) {
+            const distance = calculateColorDistance(hex, color.hex);
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestColor = color;
+            }
+          }
+        }
+
+        return closestColor;
+      }
+
+      function calculateColorDistance(hex1, hex2) {
+        const rgb1 = hexToRgb(hex1);
+        const rgb2 = hexToRgb(hex2);
+
+        return Math.sqrt(
+          Math.pow(rgb1.r - rgb2.r, 2) +
+            Math.pow(rgb1.g - rgb2.g, 2) +
+            Math.pow(rgb1.b - rgb2.b, 2)
+        );
+      }
+
+      function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+          ? {
+              r: parseInt(result[1], 16),
+              g: parseInt(result[2], 16),
+              b: parseInt(result[3], 16),
+            }
+          : null;
+      }
+
+      function updateOutfitSuggestions(color) {
+        const suggestionsContainer =
+          document.getElementById('outfitSuggestions');
+        const closestColor = getClosestColor(color.hexString);
+
+        if (closestColor) {
+          let html = `<h2>Outfit Suggestions for ${closestColor.colorName}</h2>`;
+          html += '<h3>Clothing Items:</h3>';
+          html += '<div class="card-container">';
+          for (const item of closestColor.outfitSuggestions) {
+            html += `
+              <div class="card">
+                <div class="card-image" style="background-image:url(${item.image});"></div>
+                <div class="card-content">
+                  <div class="card-title">${item.item}</div>
+                  <a href="${item.link}" target="_blank" class="card-link">View Item</a>
+                </div>
+              </div>
+            `;
+          }
+          html += '</div>';
+          html += '<h3>Accessories to Try:</h3>';
+          html += '<ul>';
+          for (const accessory of closestColor.accessoriesToTry) {
+            html += `<li>${accessory}</li>`;
+          }
+          html += '</ul>';
+          html += `<h3>Color Combination to Try:</h3>`;
+          html += `<p>${closestColor.combinationColorToTryWith}</p>`;
+          html += `<h3>Shopping Links:</h3>`;
+          html += '<div class="card-container">';
+          html += `
+            <div class="card">
+              <div class="card-image" style="background-image:url(${closestColor.shoppingLinks.clothingImage});"></div>
+              <div class="card-content">
+                <div class="card-title">Clothing Items</div>
+                <a href="${closestColor.shoppingLinks.clothingItems}" target="_blank" class="card-link">Shop Now</a>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-image" style="background-image:url(${closestColor.shoppingLinks.accessoryImage});"></div>
+              <div class="card-content">
+                <div class="card-title">Accessories</div>
+                <a href="${closestColor.shoppingLinks.accessories}" target="_blank" class="card-link">Shop Now</a>
+              </div>
+            </div>
+          `;
+          html += '</div>';
+
+          suggestionsContainer.innerHTML = html;
+        } else {
+          suggestionsContainer.innerHTML =
+            '<p>No recommendations found for this color, intensity, and occasion combination.</p>';
+        }
+      }
+
+      colorPicker.on('color:change', function (color) {
+        updateOutfitSuggestions(color);
+      });
+
+      document
+        .getElementById('intensity')
+        .addEventListener('change', function () {
+          updateOutfitSuggestions(colorPicker.color);
+        });
+
+      document
+        .getElementById('occasion')
+        .addEventListener('change', function () {
+          updateOutfitSuggestions(colorPicker.color);
+        });
+
+      // Initial update
+      updateOutfitSuggestions(colorPicker.color);
+    </script>
+  </body>
+</html>

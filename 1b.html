@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Outfit Recommendation Widget</title>
+    <link rel="stylesheet" href="path/to/your/css/file.css" />
+  </head>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f4f4f4;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    #color-picker,
+    #outfit-display,
+    #settings {
+      margin: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #color-wheel {
+      width: 200px;
+      height: 200px;
+      background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+      border-radius: 50%;
+      margin-bottom: 20px;
+    }
+
+    #suggestions,
+    #seasonal-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .color-swatch {
+      width: 50px;
+      height: 50px;
+      border-radius: 5px;
+    }
+  </style>
+  <body>
+    <div id="color-picker">
+      <div id="color-wheel"></div>
+      <button onclick="getOutfitSuggestions()">Get Outfit</button>
+    </div>
+    <div id="outfit-display">
+      <h2>Your Outfit Suggestions</h2>
+      <div id="suggestions"></div>
+      <div id="seasonal-palette">
+        <h3>Seasonal Palette</h3>
+        <!-- Will be populated by JavaScript -->
+      </div>
+    </div>
+    <div id="settings">
+      <label>Color Intensity:</label>
+      <input type="range" id="intensity" min="0" max="100" value="50" />
+      <select id="occasion">
+        <option value="casual">Casual</option>
+        <option value="formal">Formal</option>
+        <option value="sporty">Sporty</option>
+      </select>
+    </div>
+    <script>
+      const colors = [
+        {
+          RGB: [255, 99, 71],
+          HEX: '#FF6347',
+          colorName: 'Tomato',
+          outfitSuggestions: [
+            {
+              clothingItem: 'White Shirt',
+              shoppingLink: 'https://example.com/white-shirt',
+            },
+            {
+              clothingItem: 'Blue Jeans',
+              shoppingLink: 'https://example.com/blue-jeans',
+            },
+            {
+              clothingItem: 'Brown Boots',
+              shoppingLink: 'https://example.com/brown-boots',
+            },
+          ],
+          accessoriesToTry: [
+            {
+              item: 'Silver Watch',
+              shoppingLink: 'https://example.com/silver-watch',
+            },
+            {
+              item: 'Leather Belt',
+              shoppingLink: 'https://example.com/leather-belt',
+            },
+          ],
+          combinationColorToTryWith: '#FFD700', // Gold
+        },
+        // Add more colors here...
+      ];
+
+      const seasonalPalettes = {
+        spring: ['#FFB6C1', '#98FB98', '#87CEEB'],
+        summer: ['#FFA07A', '#FFFF00', '#00BFFF'],
+        autumn: ['#D2691E', '#8B4513', '#FF4500'],
+        winter: ['#F0F8FF', '#E6E6FA', '#B0C4DE'],
+      };
+
+      document.addEventListener('DOMContentLoaded', (event) => {
+        const colorWheel = document.getElementById('color-wheel');
+        const suggestionsDiv = document.getElementById('suggestions');
+        const seasonalPaletteDiv = document.getElementById('seasonal-palette');
+
+        // Simulate color selection - this would typically involve a more complex color picker
+        colorWheel.addEventListener('click', (e) => {
+          const rect = colorWheel.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          // Here you would convert x,y to a color, for simplicity, we'll skip this step
+          const selectedColor = '#FF6347'; // Example color
+          generateOutfit(selectedColor);
+        });
+
+        function generateOutfit(color) {
+          const colorObj = colors.find((c) => c.HEX === color);
+          if (!colorObj) return;
+
+          suggestionsDiv.innerHTML = '';
+          colorObj.outfitSuggestions.forEach((item) => {
+            const div = document.createElement('div');
+            div.innerHTML = `<p>${item.clothingItem}</p><a href="${item.shoppingLink}" target="_blank">Buy</a>`;
+            suggestionsDiv.appendChild(div);
+          });
+
+          // Display seasonal palette
+          const season = getCurrentSeason(); // Implement this function based on date
+          seasonalPaletteDiv.innerHTML = `<h3>${
+            season.charAt(0).toUpperCase() + season.slice(1)
+          } Palette</h3>`;
+          seasonalPalettes[season].forEach((paletteColor) => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = paletteColor;
+            seasonalPaletteDiv.appendChild(swatch);
+          });
+        }
+
+        function getCurrentSeason() {
+          const now = new Date();
+          const month = now.getMonth();
+          if (month >= 2 && month <= 4) return 'spring';
+          else if (month >= 5 && month <= 7) return 'summer';
+          else if (month >= 8 && month <= 10) return 'autumn';
+          return 'winter';
+        }
+      });
+    </script>
+  </body>
+</html>
